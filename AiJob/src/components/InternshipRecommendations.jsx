@@ -12,8 +12,7 @@ const InternshipCard = ({ internship, rank }) => {
     description,
     matchScore,
     matchReasons,
-    skills,
-    requirements
+    skills
   } = internship;
 
   const getScoreColor = (score) => {

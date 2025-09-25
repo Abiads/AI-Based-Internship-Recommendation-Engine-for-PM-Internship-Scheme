@@ -163,7 +163,7 @@ Provide response in this JSON format:
         isAIGenerated: true
       };
     } catch (parseError) {
-      console.warn('Failed to parse AI response, using rule-based recommendations');
+      console.warn('Failed to parse AI response, using rule-based recommendations:', parseError);
       return {
         recommendations: ruleBasedResults,
         summary: "Recommendations generated using our matching algorithm (AI parse error)",
