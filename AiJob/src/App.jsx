@@ -45,23 +45,71 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 relative overflow-x-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-white/5 rounded-full blur-3xl animate-ping delay-2000"></div>
+      </div>
+      
       {/* Glassmorphism Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-pink-600/20 pointer-events-none"></div>
+      
+      {/* Floating Particles Animation */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute animate-float"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationDuration: `${3 + Math.random() * 4}s`
+            }}
+          >
+            <div className="w-2 h-2 bg-white/20 rounded-full blur-sm"></div>
+          </div>
+        ))}
+      </div>
       
       <main className="flex-1 flex flex-col justify-center items-center px-4 py-8">
         <div className="w-full max-w-6xl mx-auto space-y-8 relative z-10">
           
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight drop-shadow-lg">
-              PM Internship Recommendation Engine
-            </h1>
-            <p className="text-xl text-white/90 mb-2">
+          {/* Enhanced Header */}
+          <div className="text-center mb-8 animate-fade-in">
+            <div className="inline-flex items-center gap-3 mb-4">
+              <div className="p-3 bg-white/20 backdrop-blur-md rounded-full">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-lg">
+                PM Internship Recommendation Engine
+              </h1>
+            </div>
+            <p className="text-xl text-white/90 mb-2 animate-fade-in delay-300">
               Find the perfect internship opportunities tailored just for you
             </p>
-            <p className="text-sm text-white/80">
+            <p className="text-sm text-white/80 animate-fade-in delay-500">
               Smart India Hackathon 2025 | Ministry of Corporate Affairs
             </p>
+            
+            {/* Enhanced Stats */}
+            <div className="flex justify-center gap-8 mt-6 animate-fade-in delay-700">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">10+</div>
+                <div className="text-sm text-white/80">Internships</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">AI</div>
+                <div className="text-sm text-white/80">Powered</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">100%</div>
+                <div className="text-sm text-white/80">Free</div>
+              </div>
+            </div>
           </div>
 
           {/* Main Content */}

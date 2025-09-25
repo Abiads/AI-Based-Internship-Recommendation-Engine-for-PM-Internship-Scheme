@@ -34,89 +34,95 @@ const InternshipCard = ({ internship, rank }) => {
   const rankBadge = getRankBadge(rank);
 
   return (
-    <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-      {/* Header with rank and match score */}
-      <div className="flex items-center justify-between mb-4">
-        <div className={`px-3 py-1 rounded-full text-white text-sm font-semibold ${rankBadge.color}`}>
-          #{rank} {rankBadge.label}
-        </div>
-        <div className={`px-3 py-1 rounded-full font-bold ${getScoreColor(matchScore)}`}>
-          <FaStar className="inline mr-1" />
-          {matchScore}% Match
-        </div>
-      </div>
-
-      {/* Job Title and Company */}
-      <div className="mb-4">
-        <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
-        <div className="flex items-center gap-2 text-gray-600 mb-2">
-          <FaBuilding className="text-blue-500" />
-          <span className="font-medium">{company}</span>
-        </div>
-        <div className="flex items-center gap-4 text-sm text-gray-500">
-          <div className="flex items-center gap-1">
-            <FaMapMarkerAlt className="text-red-500" />
-            {location}
+    <div className="group bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg border border-white/30 p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 hover:scale-[1.02] relative overflow-hidden">
+      {/* Animated Background Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-purple-50/20 to-pink-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Header with rank and match score */}
+        <div className="flex items-center justify-between mb-4">
+          <div className={`px-4 py-2 rounded-full text-white text-sm font-bold shadow-lg ${rankBadge.color} transform group-hover:scale-105 transition-transform duration-200`}>
+            <FaStar className="inline mr-1" />
+            #{rank} {rankBadge.label}
           </div>
-          <div className="flex items-center gap-1">
-            <FaClock className="text-green-500" />
-            {duration}
-          </div>
-          <div className="flex items-center gap-1">
-            <FaRupeeSign className="text-yellow-500" />
-            {stipend}
+          <div className={`px-4 py-2 rounded-full font-bold shadow-md transform group-hover:scale-105 transition-transform duration-200 ${getScoreColor(matchScore)}`}>
+            {matchScore}% Match
           </div>
         </div>
-      </div>
 
-      {/* Sector Badge */}
-      <div className="mb-4">
-        <span className="inline-block px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-          {sector}
-        </span>
-      </div>
-
-      {/* Description */}
-      <p className="text-gray-700 mb-4 text-sm leading-relaxed">{description}</p>
-
-      {/* Match Reasons */}
-      <div className="mb-4">
-        <h4 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-1">
-          <FaCheckCircle className="text-green-500" />
-          Why this matches you:
-        </h4>
-        <ul className="space-y-1">
-          {matchReasons.map((reason, index) => (
-            <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
-              <span className="text-green-500 mt-1">•</span>
-              {reason}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Required Skills */}
-      <div className="mb-4">
-        <h4 className="text-sm font-semibold text-gray-800 mb-2">Required Skills:</h4>
-        <div className="flex flex-wrap gap-1">
-          {skills.slice(0, 4).map(skill => (
-            <span key={skill} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs font-medium">
-              {skill}
-            </span>
-          ))}
-          {skills.length > 4 && (
-            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-xs">
-              +{skills.length - 4} more
-            </span>
-          )}
+        {/* Job Title and Company */}
+        <div className="mb-4">
+          <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors duration-200">{title}</h3>
+          <div className="flex items-center gap-2 text-gray-600 mb-2">
+            <FaBuilding className="text-blue-500 group-hover:text-blue-600 transition-colors duration-200" />
+            <span className="font-medium">{company}</span>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-gray-500">
+            <div className="flex items-center gap-1 group-hover:text-red-600 transition-colors duration-200">
+              <FaMapMarkerAlt className="text-red-500" />
+              {location}
+            </div>
+            <div className="flex items-center gap-1 group-hover:text-green-600 transition-colors duration-200">
+              <FaClock className="text-green-500" />
+              {duration}
+            </div>
+            <div className="flex items-center gap-1 group-hover:text-yellow-600 transition-colors duration-200">
+              <FaRupeeSign className="text-yellow-500" />
+              {stipend}
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Action Button */}
-      <button className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105">
-        <FaExternalLinkAlt />
-        Apply Now
-      </button>
+        {/* Sector Badge */}
+        <div className="mb-4">
+          <span className="inline-block px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 rounded-full text-sm font-medium shadow-sm group-hover:shadow-md transition-shadow duration-200">
+            {sector}
+          </span>
+        </div>
+
+        {/* Description */}
+        <p className="text-gray-700 mb-4 text-sm leading-relaxed">{description}</p>
+
+        {/* Match Reasons */}
+        <div className="mb-4">
+          <h4 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-1">
+            <FaCheckCircle className="text-green-500" />
+            Why this matches you:
+          </h4>
+          <ul className="space-y-1">
+            {matchReasons.map((reason, index) => (
+              <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
+                <span className="text-green-500 mt-1 font-bold">•</span>
+                {reason}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Required Skills */}
+        <div className="mb-6">
+          <h4 className="text-sm font-semibold text-gray-800 mb-2">Required Skills:</h4>
+          <div className="flex flex-wrap gap-2">
+            {skills.slice(0, 4).map(skill => (
+              <span key={skill} className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 rounded-full text-xs font-medium shadow-sm hover:shadow-md transition-shadow duration-200">
+                {skill}
+              </span>
+            ))}
+            {skills.length > 4 && (
+              <span className="px-3 py-1 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-600 rounded-full text-xs font-medium">
+                +{skills.length - 4} more
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <button className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group-hover:from-blue-700 group-hover:via-purple-700 group-hover:to-pink-700">
+          <FaExternalLinkAlt className="group-hover:animate-bounce" />
+          Apply Now
+        </button>
+      </div>
     </div>
   );
 };
