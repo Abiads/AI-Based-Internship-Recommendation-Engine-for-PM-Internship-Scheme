@@ -1,258 +1,180 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import './index.css';
-import parseResume from './helpers/parseResume';
-import { sendToAI } from './helpers/sendToAI';
-import JobRecommendation from './components/JobRecommendation';
+import CandidateForm from './components/CandidateForm';
+import InternshipRecommendations from './components/InternshipRecommendations';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FiUploadCloud } from 'react-icons/fi';
+import { getAIEnhancedRecommendations } from './helpers/recommendationEngine';
 
 function App() {
-  const [file, setFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState(null);
-  const [dragActive, setDragActive] = useState(false);
-  const inputRef = useRef();
+  const [userProfile, setUserProfile] = useState(null);
+  const [summary, setSummary] = useState('');
+  const [isAIGenerated, setIsAIGenerated] = useState(false);
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (
-      selectedFile &&
-      (selectedFile.type === 'application/pdf' ||
-        selectedFile.type === 'application/msword' ||
-        selectedFile.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-    ) {
-      if (selectedFile.size > maxSize) {
-        toast.error('File size exceeds 5MB limit');
-        return;
-      }
-      setFile(selectedFile);
-    } else {
-      toast.error('Please upload a PDF or Word document');
-    }
-  };
-
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileChange({ target: { files: e.dataTransfer.files } });
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!file) {
-      toast.error('Please select a file first');
-      return;
-    }
+  const handleFormSubmit = async (candidateData) => {
     try {
-      setUploading(true);
-      const resumeText = await parseResume(file);
-      const aiResponse = await sendToAI(resumeText);
-      setRecommendations(aiResponse);
+      setLoading(true);
+      setUserProfile(candidateData);
+      
+      const result = await getAIEnhancedRecommendations(candidateData);
+      
+      if (result.recommendations && result.recommendations.length > 0) {
+        setRecommendations(result.recommendations);
+        setSummary(result.summary || 'Based on your profile, here are the best internship matches for you.');
+        setIsAIGenerated(result.isAIGenerated || false);
+        toast.success(`Found ${result.recommendations.length} perfect matches for you!`);
+      } else {
+        toast.error('No matching internships found. Try adjusting your preferences.');
+      }
     } catch (error) {
-      // Do NOT log error to console (prevents API key exposure)
-      toast.error('Something went wrong. Please retry.');
+      console.error('Recommendation error:', error);
+      toast.error('Something went wrong. Please try again.');
     } finally {
-      setUploading(false);
-      setFile(null);
+      setLoading(false);
     }
+  };
+
+  const resetForm = () => {
+    setRecommendations(null);
+    setUserProfile(null);
+    setSummary('');
+    setIsAIGenerated(false);
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 relative overflow-x-hidden">
       {/* Glassmorphism Background */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,...')] opacity-20 pointer-events-none"></div>
-      <main className="flex-1 flex flex-col justify-center items-center">
-        <div className="w-full max-w-3xl mx-auto my-12 bg-white/30 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/20 p-8 relative z-10 animate-fade-in">
-          <h1 className="text-4xl font-extrabold text-center text-gray-900 mb-4 tracking-tight drop-shadow-lg">
-            AI Job Recommendation System
-          </h1>
-          <p className="text-center text-lg text-gray-700 mb-8">
-            Upload your resume and let our AI find the perfect job matches for you
-          </p>
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-pink-600/20 pointer-events-none"></div>
+      
+      <main className="flex-1 flex flex-col justify-center items-center px-4 py-8">
+        <div className="w-full max-w-6xl mx-auto space-y-8 relative z-10">
+          
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight drop-shadow-lg">
+              PM Internship Recommendation Engine
+            </h1>
+            <p className="text-xl text-white/90 mb-2">
+              Find the perfect internship opportunities tailored just for you
+            </p>
+            <p className="text-sm text-white/80">
+              Smart India Hackathon 2025 | Ministry of Corporate Affairs
+            </p>
+          </div>
 
-          {/* Drag & Drop Upload */}
-          <form
-            className={`transition-all duration-300 border-2 border-dashed rounded-2xl p-8 text-center bg-white/60 backdrop-blur-lg shadow-lg relative ${
-              dragActive ? 'border-blue-500 bg-blue-50/80' : 'border-gray-300'
-            }`}
-            onDragEnter={handleDrag}
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <input
-              ref={inputRef}
-              type="file"
-              accept=".pdf,.doc,.docx"
-              onChange={handleFileChange}
-              className="hidden"
-              id="resume-upload"
-            />
-            <label
-              htmlFor="resume-upload"
-              className="flex flex-col items-center justify-center cursor-pointer select-none"
-            >
-              <FiUploadCloud className="text-5xl text-blue-500 mb-2 animate-bounce" />
-              <span className="text-base font-medium text-gray-700">
-                Drag & drop your resume here, or{' '}
-                <span className="text-blue-600 underline">browse</span>
-              </span>
-              <span className="text-xs text-gray-500 mt-1">
-                Supported: PDF, DOC, DOCX &bull; Max size: 5MB
-              </span>
-            </label>
-            {dragActive && (
-              <div
-                className="absolute inset-0 rounded-2xl border-4 border-blue-400 border-dashed bg-blue-100/40 z-20 animate-pulse pointer-events-none"
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-              />
-            )}
-            {file && (
-              <div className="mt-6 flex flex-col items-center gap-2 animate-fade-in">
-                <span className="inline-block px-4 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold shadow">
-                  {file.name}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {(file.size / 1024 / 1024).toFixed(2)} MB
-                </span>
+          {/* Main Content */}
+          {!recommendations ? (
+            <div className="max-w-4xl mx-auto">
+              <CandidateForm onSubmit={handleFormSubmit} loading={loading} />
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Back Button */}
+              <div className="flex justify-center">
                 <button
-                  onClick={handleUpload}
-                  disabled={uploading}
-                  className={`mt-2 px-8 py-2 rounded-xl font-bold text-lg shadow-lg transition-all duration-200 ${
-                    uploading
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
-                  } text-white hover:scale-105`}
+                  onClick={resetForm}
+                  className="px-6 py-3 bg-white/20 backdrop-blur-md text-white rounded-xl hover:bg-white/30 transition-all duration-200 font-medium"
                 >
-                  {uploading ? (
-                    <span className="flex items-center gap-2 justify-center">
-                      <span className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-5 w-5"></span>{' '}
-                      Processing...
-                    </span>
-                  ) : (
-                    'Upload & Analyze'
-                  )}
+                  ← Search Again
                 </button>
               </div>
-            )}
-          </form>
-
-          {/* Recommendations Section */}
-          {recommendations && <JobRecommendation data={recommendations} />}
+              
+              {/* Recommendations */}
+              <InternshipRecommendations
+                recommendations={recommendations}
+                summary={summary}
+                isAIGenerated={isAIGenerated}
+                userProfile={userProfile}
+              />
+            </div>
+          )}
 
           {/* Problem Statement Section */}
-          <section className="mt-12 p-8 bg-white/40 backdrop-blur-lg rounded-3xl shadow-lg border border-white/20 animate-fade-in">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
-              AI-Based Internship Recommendation Engine for PM Internship Scheme
-            </h2>
+          {!recommendations && (
+            <section className="mt-12 p-8 bg-white/20 backdrop-blur-lg rounded-3xl shadow-lg border border-white/20 animate-fade-in">
+              <h2 className="text-2xl font-bold text-white mb-4 text-center">
+                About This Project
+              </h2>
 
-            <div className="space-y-4 text-gray-800 text-base">
-              <p><strong>Problem Statement ID:</strong> 25034</p>
-              <p><strong>Title:</strong> AI-Based Internship Recommendation Engine for PM Internship Scheme</p>
-              <p><strong>Organization:</strong> Ministry of Corporate Affairs</p>
-              <p><strong>Department:</strong> Ministry of Corporate Affairs (MoCA)</p>
-              <p><strong>Category:</strong> Software</p>
-              <p><strong>Theme:</strong> Smart Education</p>
+              <div className="space-y-4 text-white/90 text-base">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <p><strong>Problem Statement ID:</strong> 25034</p>
+                  <p><strong>Organization:</strong> Ministry of Corporate Affairs</p>
+                  <p><strong>Category:</strong> Software</p>
+                  <p><strong>Theme:</strong> Smart Education</p>
+                </div>
 
-              <div>
-                <h3 className="text-xl font-semibold mt-6 mb-2">Background</h3>
-                <p>
-                  The PM Internship Scheme receives applications from youth across India,
-                  including rural areas, tribal districts, urban slums, and remote colleges.
-                  Many candidates are first-generation learners with limited digital exposure
-                  and no prior internship experience. With hundreds of internships listed on
-                  the portal, it becomes extremely challenging for them to identify
-                  opportunities that align with their skills, interests, or aspirations.
-                </p>
-                <p className="mt-2">
-                  This mismatch often leads to misaligned applications, frustration, and lost
-                  chances for valuable internships.
-                </p>
+                <div>
+                  <h3 className="text-xl font-semibold mt-6 mb-2">Background</h3>
+                  <p className="text-white/80">
+                    The PM Internship Scheme receives applications from youth across India,
+                    including rural areas, tribal districts, urban slums, and remote colleges.
+                    Many candidates are first-generation learners with limited digital exposure
+                    and no prior internship experience.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-semibold mt-6 mb-2">Our Solution</h3>
+                  <ul className="list-disc list-inside mt-3 space-y-1 text-white/80">
+                    <li>Deliver 3–5 personalized recommendations instead of overwhelming users with long lists</li>
+                    <li>Accessible design for low digital literacy users with simplicity and clarity</li>
+                    <li>Mobile-compatible and ready for regional language support</li>
+                    <li>Easy integration with existing PM Internship Scheme portal</li>
+                  </ul>
+                </div>
               </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mt-6 mb-2">Problem Description</h3>
-                <p>
-                  The challenge is to develop a lightweight AI-based recommendation engine that
-                  can bridge this gap by providing relevant internship suggestions with minimal
-                  complexity.
-                </p>
-                <ul className="list-disc list-inside mt-3 space-y-1">
-                  <li>Deliver 3–5 personalized recommendations instead of overwhelming users with long lists.</li>
-                  <li>Be accessible even for low digital literacy users, ensuring simplicity and clarity.</li>
-                  <li>Be mobile-compatible and adaptable to regional languages.</li>
-                  <li>Integrate easily into the existing PM Internship Scheme portal without requiring heavy infrastructure.</li>
-                </ul>
-              </div>
-            </div>
-          </section>
+            </section>
+          )}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 py-6 text-center w-full bg-black/20 backdrop-blur-md border-t border-white/10 mt-8">
-        <div className="max-w-3xl mx-auto px-4">
-          <p className="text-base font-medium">
-            Made by{' '}
+      <footer className="relative z-10 py-6 text-center w-full bg-black/20 backdrop-blur-md border-t border-white/10">
+        <div className="max-w-4xl mx-auto px-4">
+          <p className="text-base font-medium text-white">
+            Developed by{' '}
             <a
               href="https://abhay-portfolio-eta.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white hover:text-purple-200 transition-all duration-300 hover:decoration-solid hover:scale-105 inline-block"
+              className="text-blue-300 hover:text-blue-100 underline transition-colors duration-200"
             >
-              Abhay Gupta
+              Team SRIT
             </a>
+            {' '}for Smart India Hackathon 2025
           </p>
-          <p className="text-sm text-white/70 mt-2">
+          <p className="text-sm text-white/70 mt-1">
             <a
               href="https://www.linkedin.com/in/abhay-gupta-197b17264/"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:underline text-blue-200"
+              className="hover:text-blue-300 underline transition-colors duration-200"
             >
               Connect on LinkedIn
             </a>
           </p>
-          <p className="text-sm text-white/70 mt-2">
-            AI Job Recommendation System © {new Date().getFullYear()}
-          </p>
         </div>
       </footer>
 
+      {/* Toast Container */}
       <ToastContainer
         position="top-right"
-        autoClose={4000}
+        autoClose={3000}
         hideProgressBar={false}
-        newestOnTop
+        newestOnTop={false}
         closeOnClick
+        rtl={false}
         pauseOnFocusLoss
         draggable
         pauseOnHover
+        theme="light"
       />
 
-      {/* Spinner CSS */}
+      {/* Custom Styles */}
       <style>{`
-        .loader {
-          border-top-color: #6366f1;
-          animation: spinner 0.6s linear infinite;
-        }
-        @keyframes spinner {
-          to { transform: rotate(360deg); }
-        }
         .animate-fade-in {
           animation: fadeIn 0.7s ease-in;
         }
