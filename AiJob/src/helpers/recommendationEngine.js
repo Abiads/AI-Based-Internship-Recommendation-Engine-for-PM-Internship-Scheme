@@ -122,7 +122,7 @@ Provide response in this JSON format:
 `;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -163,7 +163,7 @@ Provide response in this JSON format:
         isAIGenerated: true
       };
     } catch (parseError) {
-      console.warn('Failed to parse AI response, using rule-based recommendations');
+      console.warn('Failed to parse AI response, using rule-based recommendations:', parseError);
       return {
         recommendations: ruleBasedResults,
         summary: "Recommendations generated using our matching algorithm (AI parse error)",

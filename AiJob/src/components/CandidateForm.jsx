@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { FaUser, FaGraduationCap, FaTools, FaHeart, FaMapMarkerAlt, FaClock, FaSearch } from 'react-icons/fa';
+import { FaUser, FaGraduationCap, FaTools, FaHeart, FaMapMarkerAlt, FaClock, FaSearch, FaUpload, FaFileAlt, FaTimes, FaMagic } from 'react-icons/fa';
 import { educationOptions, skillOptions, locationOptions, sectorOptions } from '../data/mockInternships';
+import parseResume from '../helpers/parseResume';
+import { sendToAI } from '../helpers/sendToAI';
 
 const CandidateForm = ({ onSubmit, loading }) => {
   const [formData, setFormData] = useState({
@@ -14,6 +16,10 @@ const CandidateForm = ({ onSubmit, loading }) => {
 
   const [skillInput, setSkillInput] = useState('');
   const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
+  const [resumeFile, setResumeFile] = useState(null);
+  const [resumeProcessing, setResumeProcessing] = useState(false);
+  const [resumeAnalysis, setResumeAnalysis] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -46,6 +52,60 @@ const CandidateForm = ({ onSubmit, loading }) => {
     }));
   };
 
+  const handleResumeUpload = async (file) => {
+    if (!file) return;
+    
+    // Validate file type
+    const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!validTypes.includes(file.type)) {
+      alert('Please upload a PDF or DOCX file');
+      return;
+    }
+
+    setResumeFile(file);
+    setResumeProcessing(true);
+    
+    try {
+      // Parse resume
+      const resumeText = await parseResume(file);
+      
+      // Send to AI for analysis
+      const aiResult = await sendToAI(resumeText);
+      setResumeAnalysis(aiResult);
+      
+    } catch (error) {
+      console.error('Resume processing error:', error);
+      alert('Failed to process resume. Please try again or fill the form manually.');
+    } finally {
+      setResumeProcessing(false);
+    }
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleResumeUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  const removeResume = () => {
+    setResumeFile(null);
+    setResumeAnalysis(null);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (formData.education && formData.skills.length > 0 && formData.interests.length > 0 && formData.location) {
@@ -69,6 +129,82 @@ const CandidateForm = ({ onSubmit, loading }) => {
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Resume Upload Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 justify-between">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <FaMagic className="text-yellow-500" />
+              Smart Resume Analysis (Optional)
+            </label>
+            {resumeFile && (
+              <button
+                type="button"
+                onClick={removeResume}
+                className="text-red-500 hover:text-red-700 transition-colors"
+              >
+                <FaTimes />
+              </button>
+            )}
+          </div>
+          
+          {!resumeFile ? (
+            <div
+              className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-200 ${
+                dragActive
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-300 hover:border-blue-400 hover:bg-blue-25'
+              }`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+            >
+              <input
+                type="file"
+                accept=".pdf,.docx"
+                onChange={(e) => e.target.files[0] && handleResumeUpload(e.target.files[0])}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                disabled={resumeProcessing}
+              />
+              <div className="flex flex-col items-center space-y-2">
+                <FaUpload className="text-3xl text-gray-400" />
+                <p className="text-gray-600 font-medium">
+                  Upload your resume for smart form filling
+                </p>
+                <p className="text-sm text-gray-500">
+                  Drag & drop or click to select (PDF or DOCX)
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <FaFileAlt className="text-green-600 text-xl" />
+                <div className="flex-1">
+                  <p className="font-medium text-green-800">{resumeFile.name}</p>
+                  <p className="text-sm text-green-600">
+                    {resumeProcessing ? 'Processing resume...' : 'Resume processed successfully!'}
+                  </p>
+                </div>
+                {resumeProcessing && (
+                  <div className="animate-spin h-5 w-5 border-2 border-green-600 border-t-transparent rounded-full"></div>
+                )}
+              </div>
+              
+              {resumeAnalysis && (
+                <div className="mt-4 p-3 bg-white rounded-lg border border-green-200">
+                  <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+                    <FaMagic className="text-yellow-500" />
+                    AI Resume Analysis
+                  </h4>
+                  <div className="text-sm text-gray-700 prose prose-sm">
+                    <div dangerouslySetInnerHTML={{ __html: resumeAnalysis.raw.replace(/\n/g, '<br/>') }} />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         {/* Name */}
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
@@ -237,21 +373,27 @@ const CandidateForm = ({ onSubmit, loading }) => {
         <button
           type="submit"
           disabled={!isFormValid || loading}
-          className={`w-full flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-semibold text-white transition-all duration-200 ${
+          className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-bold text-white transition-all duration-300 transform ${
             isFormValid && !loading
-              ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+              ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 shadow-lg hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.02]'
               : 'bg-gray-400 cursor-not-allowed'
           }`}
         >
           {loading ? (
             <>
-              <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
-              Finding Perfect Matches...
+              <div className="relative">
+                <div className="animate-spin h-6 w-6 border-3 border-white border-t-transparent rounded-full"></div>
+                <div className="absolute inset-0 animate-ping h-6 w-6 border-2 border-white/30 rounded-full"></div>
+              </div>
+              <span className="animate-pulse">Finding Perfect Matches...</span>
             </>
           ) : (
             <>
-              <FaSearch />
-              Find My Internships
+              <FaSearch className="text-lg group-hover:animate-bounce" />
+              <span>Find My Dream Internships</span>
+              <div className="ml-2 px-2 py-1 bg-white/20 rounded-full text-xs font-medium">
+                AI Powered
+              </div>
             </>
           )}
         </button>

@@ -27,10 +27,11 @@ const TabButton = ({ active, onClick, children, icon }) => (
 );
 
 const JobRecommendation = ({ data }) => {
+    const [tab, setTab] = useState('roles');
+    
     if (!data) return null;
 
-    const { skills, experience_summary, desired_roles, raw } = data;
-    const [tab, setTab] = useState('roles');
+    const { skills, experience_summary, raw } = data;
     const { roles, improvements } = parseSections(raw || '');
 
     return (
